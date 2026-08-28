@@ -1,0 +1,51 @@
+name: Automated Frontend CI/CD Pipeline
+
+on:
+  push:
+    paths:
+      - 'microservices-demo/src/frontend/**'
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Short Commit SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./microservices-demo/src/frontend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/frontend:${{ steps.vars.outputs.sha_short }}
+            ghcr.io/${{ github.repository_owner }}/frontend:latest
+
+      - name: Update Rollout Manifest Image Tag
+        run: |
+          sed -i 's|image: .*|image: ghcr.io/${{ github.repository_owner }}/frontend:${{ steps.vars.outputs.sha_short }}|g' manifests/argo-rollouts/frontend-rollout.yaml
+
+      - name: Commit and Push Updated Manifest
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifests/argo-rollouts/frontend-rollout.yaml
+          git commit -m "ci: update frontend image tag to ${{ steps.vars.outputs.sha_short }}" || exit 0
+          git push
