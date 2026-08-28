@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: server
-        image: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/frontend:v0.10.6
+        image: ghcr.io/noxxspring/frontend:148577d
         ports:
         - containerPort: 8080
         env:
