@@ -2,10 +2,9 @@ name: Automated Frontend CI/CD Pipeline
 
 on:
   push:
-    paths:
-      - 'microservices-demo/src/frontend/**'
     branches:
       - main
+      - master
 
 jobs:
   build-and-deploy:
