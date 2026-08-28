@@ -23,7 +23,7 @@ spec:
         - containerPort: 8080
         env:
         - name: REVISION_ID
-          value: "v10-live-production"
+          value: "v11-final-test"
         - name: PORT
           value: "8080"
         - name: PRODUCT_CATALOG_SERVICE_ADDR
